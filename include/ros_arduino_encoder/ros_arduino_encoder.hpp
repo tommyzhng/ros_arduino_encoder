@@ -10,6 +10,9 @@
 #include "serial/serial.h"
 #include "geometry_msgs/Vector3Stamped.h"
 
+#include <thread>
+#include <chrono>
+
 class RosArduinoEncoderNode
 {
 public:
@@ -29,14 +32,14 @@ private:
     void PubEncoderRaw(void);
 
     std::unique_ptr<serial::Serial> serialPort;
-    std::vector<uint8_t> buffer{10, 0};
-    MsgUint32_t pos_x{0};
-    MsgUint32_t pos_y{0};
-    MsgUint32_t pos_z{0};
+    std::vector<uint8_t> buffer{13, 0};
+    MsgUint32_t posX{0};
+    MsgUint32_t posY{0};
+    MsgUint32_t posZ{0};
 
     // ros pubs
-    ros::Publisher encoder_pub;
-    geometry_msgs::Vector3Stamped encoder_raw_msg;
+    ros::Publisher encoderPub;
+    geometry_msgs::Vector3Stamped encoderRawMsg;
 };
 
 #endif

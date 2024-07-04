@@ -3,9 +3,10 @@
 
 RosArduinoEncoderNode::RosArduinoEncoderNode(ros::NodeHandle& nh)
 {
-    encoder_pub = nh.advertise<geometry_msgs::Vector3Stamped>("/serial/encoder_raw", 1);
     serialPort = std::make_unique<serial::Serial>("/dev/ttyUSB0", 115200UL, serial::Timeout::simpleTimeout(10000));
     InitializeSerial(*serialPort);
+
+    encoderPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/position_raw", 1);
 }
 
 void RosArduinoEncoderNode::InitializeSerial(serial::Serial& serial)
@@ -21,38 +22,39 @@ void RosArduinoEncoderNode::InitializeSerial(serial::Serial& serial)
                       read_timeout_multiplier,
                       write_timeout_constant,
                       write_timeout_multiplier);
+
+    serial.flushInput();
 }
 
 void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
 {
+    serial.flushInput();
     auto flag = serial.waitReadable();
     if (!flag) {  // check for message received
         std::cout << "Timeout - No message received \n";
         return;
     }
-    [[maybe_unused]] size_t length = serial.read(buffer.data(), 10); // read to buffer
-
-    // print debug
+    [[maybe_unused]] size_t length = serial.read(buffer.data(), 13); // read to buffer, byte length is 13 because header + 3x4 bytes
 
     if (buffer[0] == 0xEF) { 
-        pos_x.bits[0] = buffer[1];
-        pos_x.bits[1] = buffer[2];
-        pos_x.bits[2] = buffer[3];
-        pos_x.bits[3] = buffer[4];
+        posX.bits[0] = buffer[1];
+        posX.bits[1] = buffer[2];
+        posX.bits[2] = buffer[3];
+        posX.bits[3] = buffer[4];
 
-        // pos_y.bits[0] = buffer[5];
-        // pos_y.bits[1] = buffer[6];
-        // pos_y.bits[2] = buffer[7];
-        // pos_y.bits[3] = buffer[8];
+        posY.bits[0] = buffer[5];
+        posY.bits[1] = buffer[6];
+        posY.bits[2] = buffer[7];
+        posY.bits[3] = buffer[8];
 
-        // pos_z.bits[0] = buffer[9];
-        // pos_z.bits[1] = buffer[10];
-        // pos_z.bits[2] = buffer[11];
-        // pos_z.bits[3] = buffer[12];
+        posZ.bits[0] = buffer[9];
+        posZ.bits[1] = buffer[10];
+        posZ.bits[2] = buffer[11];
+        posZ.bits[3] = buffer[12];
 
-        encoder_raw_msg.vector.x = pos_x.value;
-        encoder_raw_msg.vector.y = pos_y.value;
-        encoder_raw_msg.vector.z = pos_z.value;
+        encoderRawMsg.vector.x = posX.value;
+        encoderRawMsg.vector.y = posY.value;
+        encoderRawMsg.vector.z = posZ.value;
     }
 }
 
@@ -66,5 +68,5 @@ void RosArduinoEncoderNode::Update(void)
 
 void RosArduinoEncoderNode::PubEncoderRaw(void)
 {
-    encoder_pub.publish(encoder_raw_msg);
+    encoderPub.publish(encoderRawMsg);
 }
