@@ -1,4 +1,4 @@
 <launch>
   <!-- Encoder2Ros Node -->
-  <node pkg="ros_arduino_encoder" type="ros_arduino_encoder_node" name="encoder2ros_node" output="screen" /> 
+  <node pkg="ros_arduino_encoder" type="ros_arduino_encoder_node" name="ros_arduino_encoder_node" output="screen" /> 
 </launch>
