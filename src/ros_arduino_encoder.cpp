@@ -14,7 +14,8 @@ RosArduinoEncoderNode::RosArduinoEncoderNode(ros::NodeHandle& nh)
 
     // publish
     encoderPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/position_raw", 1);
-}
+    payloadPosPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/position_payload", 1);
+}   
 
 void RosArduinoEncoderNode::StartEncoderSerial(serial::Serial& serial)
 {
