@@ -24,22 +24,34 @@ public:
 
     void Update(void);
     RosArduinoEncoderNode(ros::NodeHandle& nh);
-    ~RosArduinoEncoderNode() = default; 
+    ~RosArduinoEncoderNode() = default;
 
 private:
-    void InitializeSerial(serial::Serial& serial);
+    void StartEncoderSerial(serial::Serial& serial);
     void ReadEncoder(serial::Serial &serial);
+    void StartStepperSerial(serial::Serial& serial);
+    void RecieveStepperCommandCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+    void CalculatePosition();
     void PubEncoderRaw(void);
+    void PubPayloadPos(void);
+    void SendStepperCommand(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
 
-    std::unique_ptr<serial::Serial> serialPort;
+    // encoder serial
+    std::unique_ptr<serial::Serial> encoderSerial;
     std::vector<uint8_t> buffer{13, 0};
     MsgUint32_t posX{0};
     MsgUint32_t posY{0};
     MsgUint32_t posZ{0};
-
+    float lengthPerTick = (M_PI * 0.5) / 30;
+    // stepper serial
+    std::unique_ptr<serial::Serial> stepperSerial;
+    // ros subs
+    ros::Subscriber stepperSub;
     // ros pubs
     ros::Publisher encoderPub;
+    ros::Publisher payloadPosPub;
     geometry_msgs::Vector3Stamped encoderRawMsg;
+    geometry_msgs::Vector3Stamped payloadPosMsg;
 };
 
 #endif
