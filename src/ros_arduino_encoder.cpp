@@ -79,13 +79,13 @@ void RosArduinoEncoderNode::RecieveStepperCommandCb(const geometry_msgs::Vector3
     SendStepperCommand(msg);
 }
 
-// intermediate calculations
+// calculations
 void RosArduinoEncoderNode::CalculatePosition()
 {
-    payloadPosMsg.vector.x = 0;
-    payloadPosMsg.vector.y = 0;
-    // calculate length 
+    float angle = (encoderRawMsg.vector.x * 360 / 30) * M_PI / 180;
     payloadPosMsg.vector.z = encoderRawMsg.vector.z * lengthPerTick;
+    encoderRawMsg.vector.x = encoderRawMsg.vector.z * sin(angle);
+    encoderRawMsg.vector.y = encoderRawMsg.vector.z * cos(angle);
 }
 
 // publish msgs
