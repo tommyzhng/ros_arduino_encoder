@@ -39,6 +39,7 @@ private:
     // encoder serial
     std::unique_ptr<serial::Serial> encoderSerial;
     std::vector<uint8_t> buffer{13, 0};
+    const char* stepperBuffer;
     MsgUint32_t posX{0};
     MsgUint32_t posY{0};
     MsgUint32_t posZ{0};

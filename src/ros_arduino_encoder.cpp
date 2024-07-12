@@ -101,11 +101,12 @@ void RosArduinoEncoderNode::SendStepperCommand(const geometry_msgs::Vector3Stamp
 {
     // only send z value
     stepperSerial->flush();
-    buffer[0] = 0xEF;
-    buffer[1] = msg->vector.z;
-    stepperSerial->write(buffer);
+    std::stringstream ss;
+    ss << msg->vector.z << '\n';
+    std::string stepperBuffer = ss.str();
+    stepperSerial->write(stepperBuffer.c_str());
     // print message sent
-    std::cout << "Sent message: " << static_cast<int>(buffer[0]) << " " << static_cast<int>(buffer[1]) << std::endl;
+    std::cout << "Sent message: " << static_cast<std::string>(stepperBuffer) << std::endl;
 }
 void RosArduinoEncoderNode::Update(void)
 {
