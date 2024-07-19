@@ -9,6 +9,7 @@
 #include <vector>
 #include "serial/serial.h"
 #include "geometry_msgs/Vector3Stamped.h"
+#include "std_msgs/Float32.h"
 
 #include <thread>
 #include <chrono>
@@ -30,11 +31,11 @@ private:
     void StartEncoderSerial(serial::Serial& serial);
     void ReadEncoder(serial::Serial &serial);
     void StartStepperSerial(serial::Serial& serial);
-    void RecieveStepperCommandCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+    void RecieveStepperCommandCb(const std_msgs::Float32::ConstPtr& msg);
     void CalculatePosition();
     void PubEncoderRaw(void);
     void PubPayloadPos(void);
-    void SendStepperCommand(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+    void Send2Serial(double val);
 
     // encoder serial
     std::unique_ptr<serial::Serial> encoderSerial;

@@ -1,0 +1,4 @@
+# all vscode stuff
+.vscode/
+# all instance of settings.json
+settings.json

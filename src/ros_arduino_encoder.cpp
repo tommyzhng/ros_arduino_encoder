@@ -9,8 +9,8 @@ RosArduinoEncoderNode::RosArduinoEncoderNode(ros::NodeHandle& nh)
     stepperSerial = std::make_unique<serial::Serial>("/dev/ttyACM0", 115200UL, serial::Timeout::simpleTimeout(10000));
     StartStepperSerial(*stepperSerial);
 
-    // subscribe to gui message
-    stepperSub = nh.subscribe("/stepper/setpoint_length", 1, &RosArduinoEncoderNode::RecieveStepperCommandCb, this);
+    // subscribe to converted commands
+    stepperSub = nh.subscribe("/stepper/serial_command", 1, &RosArduinoEncoderNode::RecieveStepperCommandCb, this);
 
     // publish
     encoderPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/position_raw", 1);
@@ -73,10 +73,10 @@ void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
     }
 }
 
-void RosArduinoEncoderNode::RecieveStepperCommandCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+void RosArduinoEncoderNode::RecieveStepperCommandCb(const std_msgs::Float32::ConstPtr& msg)
 {
-    std::cout << "Recieved stepper cmd: " << msg->vector.x << " " << msg->vector.y << " " << msg->vector.z << std::endl;
-    SendStepperCommand(msg);
+    std::cout << "Recieved stepper cmd:"  << msg->data<< std::endl;
+    Send2Serial(msg->data);
 }
 
 // calculations
@@ -97,12 +97,11 @@ void RosArduinoEncoderNode::PubPayloadPos(void)
 {
     payloadPosPub.publish(payloadPosMsg);
 }
-void RosArduinoEncoderNode::SendStepperCommand(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+void RosArduinoEncoderNode::Send2Serial(double rpm)
 {
-    // only send z value
     stepperSerial->flush();
     std::stringstream ss;
-    ss << msg->vector.z << '\n';
+    ss << rpm << '\n';
     std::string stepperBuffer = ss.str();
     stepperSerial->write(stepperBuffer.c_str());
     // print message sent

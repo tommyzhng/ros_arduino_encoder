@@ -1,4 +1,6 @@
 <launch>
   <!-- Encoder2Ros Node -->
-  <node pkg="ros_arduino_encoder" type="ros_arduino_encoder_node" name="ros_arduino_encoder_node" output="screen" /> 
+  <node pkg="ros_arduino_encoder" type="ros_arduino_encoder_node" name="ros_arduino_encoder_node" output="screen" />
+  <!-- params --> 
+  <rosparam command="load" file="$(find ros_arduino_encoder)/config/params.json" />
 </launch>

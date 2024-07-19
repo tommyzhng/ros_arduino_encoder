@@ -24,9 +24,14 @@ add_library(ros_arduino_encoder src/ros_arduino_encoder.cpp)
 target_include_directories(ros_arduino_encoder PUBLIC include)
 target_compile_features(ros_arduino_encoder PUBLIC cxx_std_17)
 
+# add new ros_stepper_controller files
+add_library(ros_stepper_controller src/ros_stepper_controller.cpp)
+target_include_directories(ros_stepper_controller PUBLIC include)
+target_compile_features(ros_stepper_controller PUBLIC cxx_std_17)
+
 add_executable(ros_arduino_encoder_node src/ros_arduino_encoder_node.cpp)
 
-target_link_libraries(ros_arduino_encoder_node PUBLIC ros_arduino_encoder ${catkin_LIBRARIES} serial)
+target_link_libraries(ros_arduino_encoder_node PUBLIC ros_arduino_encoder ${catkin_LIBRARIES} serial ros_stepper_controller)
 
 add_dependencies(ros_arduino_encoder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
