@@ -68,24 +68,27 @@ void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
         posZ.bits[3] = buffer[12];
 
         encoderRawMsg.vector.x = posX.value;
-        encoderRawMsg.vector.y = posY.value;
+        encoderRawMsg.vector.y = 0;
         encoderRawMsg.vector.z = posZ.value;
+
+        //ROS_INFO("Encoder X: %d, Y: %d, Z: %d", posX.value, posY.value, posZ.value);
     }
 }
 
 void RosArduinoEncoderNode::RecieveStepperCommandCb(const std_msgs::Float32::ConstPtr& msg)
 {
-    std::cout << "Recieved stepper cmd:"  << msg->data<< std::endl;
+    //std::cout << "Recieved stepper cmd:"  << msg->data<< std::endl;
     Send2Serial(msg->data);
 }
 
 // calculations
 void RosArduinoEncoderNode::CalculatePosition()
 {
-    float angle = (encoderRawMsg.vector.x * 360 / 30) * M_PI / 180;
+    float angleX = (encoderRawMsg.vector.x * 360 / 30) * M_PI / 180;
+    float angleY = (encoderRawMsg.vector.y * 360 / 30) * M_PI / 180;
     payloadPosMsg.vector.z = encoderRawMsg.vector.z * lengthPerTick;
-    encoderRawMsg.vector.x = encoderRawMsg.vector.z * sin(angle);
-    encoderRawMsg.vector.y = encoderRawMsg.vector.z * cos(angle);
+    payloadPosMsg.vector.x = encoderRawMsg.vector.z * sin(angleX);
+    payloadPosMsg.vector.y = encoderRawMsg.vector.z * sin(angleY);
 }
 
 // publish msgs
@@ -97,20 +100,21 @@ void RosArduinoEncoderNode::PubPayloadPos(void)
 {
     payloadPosPub.publish(payloadPosMsg);
 }
-void RosArduinoEncoderNode::Send2Serial(double rpm)
+void RosArduinoEncoderNode::Send2Serial(double val)
 {
     stepperSerial->flush();
     std::stringstream ss;
-    ss << rpm << '\n';
+    ss << static_cast<uint8_t>(0xEF); // Header
+    ss.write(reinterpret_cast<const char*>(&val), sizeof(val));
+    ss << '\n'; // Terminating character
     std::string stepperBuffer = ss.str();
     stepperSerial->write(stepperBuffer.c_str());
-    // print message sent
-    std::cout << "Sent message: " << static_cast<std::string>(stepperBuffer) << std::endl;
 }
 void RosArduinoEncoderNode::Update(void)
 {
     ReadEncoder(*encoderSerial);
     CalculatePosition();
     PubEncoderRaw();
+    PubPayloadPos();
 }
 

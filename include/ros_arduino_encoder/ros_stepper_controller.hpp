@@ -18,7 +18,7 @@ public:
     ~RosStepperController() = default;
     void PIDControl(void);
 private:
-    void RecieveStepperLenVelCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
+    void RecieveStepperSetpointCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void RecieveCurrentLenCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
     void SendStepperCommand(double msg);
     void SineWaveTest(void);
@@ -32,15 +32,16 @@ private:
     std_msgs::Float32 stepperSerialMsg;
     std_msgs::Float32MultiArray sineMsg;
 
-    float currentLen;
-    float targetLen;
-    float maxVel;
+    bool sineTest{false};
+    float currentLen{0};
+    float targetLen{0};
+    float maxVel{0};
     double output;
 
     // PID params
-    float ki;
-    float kp;
-    float kd;
+    float ki{0.0f};
+    float kp{0.0f};
+    float kd{0.0f};
     double integral{0};
     double lastLen{0};
 };

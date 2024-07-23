@@ -19,7 +19,7 @@ class RosArduinoEncoderNode
 public:
 
     union MsgUint32_t {
-        uint32_t value;
+        int32_t value;
         uint8_t bits[4];
     };
 
@@ -44,7 +44,7 @@ private:
     MsgUint32_t posX{0};
     MsgUint32_t posY{0};
     MsgUint32_t posZ{0};
-    float lengthPerTick = (M_PI * 0.5) / 30;
+    float lengthPerTick = (M_PI * 0.05) / 30;
     // stepper serial
     std::unique_ptr<serial::Serial> stepperSerial;
     // ros subs

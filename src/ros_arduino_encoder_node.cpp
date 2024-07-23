@@ -8,7 +8,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("~");
     ros::Rate rate(100);
     RosArduinoEncoderNode arduinoEncoder(nh);
-    RosStepperController stepperController(nh);
+    ros::NodeHandle nh2("~");
+    RosStepperController stepperController(nh2);
     
     std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Wait for Arduino to reset
     while (ros::ok())
