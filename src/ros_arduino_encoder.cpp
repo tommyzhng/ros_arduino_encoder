@@ -68,17 +68,17 @@ void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
         posZ.bits[3] = buffer[12];
 
         encoderRawMsg.vector.x = posX.value;
-        encoderRawMsg.vector.y = 0;
+        encoderRawMsg.vector.y = posY.value;
         encoderRawMsg.vector.z = posZ.value;
 
         //ROS_INFO("Encoder X: %d, Y: %d, Z: %d", posX.value, posY.value, posZ.value);
     }
 }
 
-void RosArduinoEncoderNode::RecieveStepperCommandCb(const std_msgs::Float32::ConstPtr& msg)
+void RosArduinoEncoderNode::RecieveStepperCommandCb(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
     //std::cout << "Recieved stepper cmd:"  << msg->data<< std::endl;
-    Send2Serial(msg->data);
+    Send2Serial(msg->data[0], msg->data[1]);
 }
 
 // calculations
@@ -100,15 +100,24 @@ void RosArduinoEncoderNode::PubPayloadPos(void)
 {
     payloadPosPub.publish(payloadPosMsg);
 }
-void RosArduinoEncoderNode::Send2Serial(double val)
+void RosArduinoEncoderNode::Send2Serial(float len, float vel)
 {
     stepperSerial->flush();
+    // use string stream for stepperBuffer
     std::stringstream ss;
-    ss << static_cast<uint8_t>(0xEF); // Header
-    ss.write(reinterpret_cast<const char*>(&val), sizeof(val));
-    ss << '\n'; // Terminating character
+
+    // round len and vel to 5 decimal places
+    len = roundf(len * 10000);
+    vel = roundf(vel * 10000);
+
+
+    // create stepperBuffer
+    ss << len << " " << vel << "\n";
     std::string stepperBuffer = ss.str();
     stepperSerial->write(stepperBuffer.c_str());
+
+    std::cout << "Sent to stepper: " << stepperBuffer << std::endl;
+
 }
 void RosArduinoEncoderNode::Update(void)
 {

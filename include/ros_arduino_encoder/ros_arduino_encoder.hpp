@@ -10,6 +10,7 @@
 #include "serial/serial.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Float32MultiArray.h"
 
 #include <thread>
 #include <chrono>
@@ -23,6 +24,11 @@ public:
         uint8_t bits[4];
     };
 
+    union MsgUfloat {
+        float value;
+        uint8_t bits[sizeof(float)];
+    };
+
     void Update(void);
     RosArduinoEncoderNode(ros::NodeHandle& nh);
     ~RosArduinoEncoderNode() = default;
@@ -31,15 +37,16 @@ private:
     void StartEncoderSerial(serial::Serial& serial);
     void ReadEncoder(serial::Serial &serial);
     void StartStepperSerial(serial::Serial& serial);
-    void RecieveStepperCommandCb(const std_msgs::Float32::ConstPtr& msg);
+    void RecieveStepperCommandCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void CalculatePosition();
     void PubEncoderRaw(void);
     void PubPayloadPos(void);
-    void Send2Serial(double val);
+    void Send2Serial(float len, float vel);
 
     // encoder serial
     std::unique_ptr<serial::Serial> encoderSerial;
     std::vector<uint8_t> buffer{13, 0};
+    // add stepper BUffer
     const char* stepperBuffer;
     MsgUint32_t posX{0};
     MsgUint32_t posY{0};
@@ -54,6 +61,7 @@ private:
     ros::Publisher payloadPosPub;
     geometry_msgs::Vector3Stamped encoderRawMsg;
     geometry_msgs::Vector3Stamped payloadPosMsg;
+    float temp = 0;
 };
 
 #endif

@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ros_arduino_encoder_node");
     ros::NodeHandle nh("~");
-    ros::Rate rate(100);
+    ros::Rate rate(60);
     RosArduinoEncoderNode arduinoEncoder(nh);
     ros::NodeHandle nh2("~");
     RosStepperController stepperController(nh2);
