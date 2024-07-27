@@ -20,12 +20,15 @@ public:
 private:
     void RecieveStepperSetpointCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void RecieveCurrentLenCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
-    void SendStepperCommand(double len, double vel);
+    void RecieveStepperTestCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void SineWaveTest(void);
+    // pubs
+    void SendStepperCommand(double len, double vel);
 
     // ros subs
     ros::Subscriber stepperLenVelSub;
     ros::Subscriber currentLenSub;
+    ros::Subscriber stepperTestSub;
     // ros pubs
     ros::Publisher stepperStepsPub;
 
@@ -44,6 +47,8 @@ private:
     float kd{0.0f};
     double integral{0};
     double lastError{0};
+
+    // sine wave testing
 };
 
 #endif

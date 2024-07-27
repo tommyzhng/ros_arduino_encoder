@@ -5,6 +5,7 @@ RosStepperController::RosStepperController(ros::NodeHandle& nh)
     // subscribers
     stepperLenVelSub = nh.subscribe("/stepper/setpoint", 1, &RosStepperController::RecieveStepperSetpointCb, this);
     currentLenSub = nh.subscribe("/encoder/position_payload", 1, &RosStepperController::RecieveCurrentLenCb, this);
+    stepperTestSub = nh.subscribe("/stepper/test", 1, &RosStepperController::RecieveStepperTestCb, this);
 
     // publisher to serial node
     stepperStepsPub = nh.advertise<std_msgs::Float32MultiArray>("/stepper/serial_command", 1);
@@ -24,6 +25,18 @@ void RosStepperController::RecieveCurrentLenCb(const geometry_msgs::Vector3Stamp
     currentLen = msg->vector.z;
 }
 
+void RosStepperController::RecieveStepperTestCb(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{
+    if (msg->data[0] == 1) {
+        sineTest = true;
+    } else {
+        sineTest = false;
+    }
+    if (sineTest) {
+        SineWaveTest();
+    }
+}
+
 void RosStepperController::SendStepperCommand(double len, double vel)
 {
     stepperSerialMsg.data = std::vector<float>{static_cast<float>(len), static_cast<float>(vel)};
@@ -32,7 +45,7 @@ void RosStepperController::SendStepperCommand(double len, double vel)
 
 void RosStepperController::PIDControl(void)
 {
-    // PID control with derivative jerk prevention (feed derivative into feedback)
+    // standard pd controller (bcs if u send len to stepper it blocks any further inputs)
     double error = targetLen - currentLen;
     integral += error;
     double dError = error - lastError;
@@ -54,5 +67,22 @@ void RosStepperController::PIDControl(void)
     
     lastError = error;
     SendStepperCommand(targetLen, -output);
+}
+
+void RosStepperController::SineWaveTest(void)
+{
+    // sine wave test non blocking by sending vel
+    double len = 0.0;
+    double vel = 0.0;
+    double time = ros::Time::now().toSec();
+    double dt = 0.0;
+    while (sineTest) {
+        dt = ros::Time::now().toSec() - time;
+        len = 0.1 * sin(2 * M_PI * 0.1 * dt);
+        vel = 0.1 * 2 * M_PI * 0.1 * cos(2 * M_PI * 0.1 * dt);
+        SendStepperCommand(len, vel);
+        ros::spinOnce();
+    }
+
 }
 

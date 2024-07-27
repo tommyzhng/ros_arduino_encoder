@@ -7,7 +7,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "ros_arduino_encoder_node");
     ros::NodeHandle nh("~");
     ros::Rate rate(60);
-    RosArduinoEncoderNode arduinoEncoder(nh);
+    //RosArduinoEncoderNode arduinoEncoder(nh);
     ros::NodeHandle nh2("~");
     RosStepperController stepperController(nh2);
     
@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         ros::spinOnce();
-        arduinoEncoder.Update();
+        //arduinoEncoder.Update();
         stepperController.PIDControl();
         rate.sleep();
     }
