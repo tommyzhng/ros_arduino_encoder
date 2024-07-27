@@ -1,6 +1,7 @@
 #include "ros_stepper_controller.hpp"
 
-RosStepperController::RosStepperController(ros::NodeHandle& nh)
+
+RosStepperController::RosStepperController(ros::NodeHandle& nh) : sineTest(false)
 {
     // subscribers
     stepperLenVelSub = nh.subscribe("/stepper/setpoint", 1, &RosStepperController::RecieveStepperSetpointCb, this);
@@ -16,8 +17,8 @@ RosStepperController::RosStepperController(ros::NodeHandle& nh)
 
 void RosStepperController::RecieveStepperSetpointCb(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-    targetLen = msg->data[0];
-    maxVel = msg->data[1];
+    targetLen_ = msg->data[0];
+    maxVel_ = msg->data[1];
 }
 
 void RosStepperController::RecieveCurrentLenCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
@@ -29,11 +30,13 @@ void RosStepperController::RecieveStepperTestCb(const std_msgs::Float32MultiArra
 {
     if (msg->data[0] == 1) {
         sineTest = true;
+        reachedOffset = false; // Reset the flag
+        amplitude = msg->data[1];
+        frequency = msg->data[2];
+        startTime = ros::Time::now().toSec(); // Initialize start time for sine wave test
     } else {
         sineTest = false;
-    }
-    if (sineTest) {
-        SineWaveTest();
+        reachedOffset = false;
     }
 }
 
@@ -43,9 +46,9 @@ void RosStepperController::SendStepperCommand(double len, double vel)
     stepperStepsPub.publish(stepperSerialMsg);
 }
 
-void RosStepperController::PIDControl(void)
+bool RosStepperController::PIDControl(double targetLen, double maxVel) 
 {
-    // standard pd controller (bcs if u send len to stepper it blocks any further inputs)
+    // standard PD controller (because if you send len to stepper it blocks any further inputs)
     double error = targetLen - currentLen;
     integral += error;
     double dError = error - lastError;
@@ -53,10 +56,10 @@ void RosStepperController::PIDControl(void)
     // force no overshoot
     if (abs(error) < 0.01) {
         SendStepperCommand(targetLen, 0);
-        return;
+        return true;
     }
 
-    output = kp * error + ki * integral + kd * dError; // technically PD control (set Ki to 0 pls)
+    output = kp * error + ki * integral + kd * dError; // technically PD control (set Ki to 0 please)
     // preclamped output
     if (output > maxVel) {
          output = maxVel;
@@ -64,25 +67,33 @@ void RosStepperController::PIDControl(void)
          output = -maxVel;
     }
 
-    
     lastError = error;
     SendStepperCommand(targetLen, -output);
+    return false;
 }
 
 void RosStepperController::SineWaveTest(void)
 {
-    // sine wave test non blocking by sending vel
-    double len = 0.0;
-    double vel = 0.0;
-    double time = ros::Time::now().toSec();
-    double dt = 0.0;
-    while (sineTest) {
-        dt = ros::Time::now().toSec() - time;
-        len = 0.1 * sin(2 * M_PI * 0.1 * dt);
-        vel = 0.1 * 2 * M_PI * 0.1 * cos(2 * M_PI * 0.1 * dt);
-        SendStepperCommand(len, vel);
-        ros::spinOnce();
-    }
+    if (!sineTest) return;
 
+    double offset = amplitude * 1.1; // a bit more than amplitude to avoid hitting the frame
+
+    if (!reachedOffset) {               // move to the starting offset position
+        reachedOffset = PIDControl(offset, 0.1);
+    } else {                            // perform sine wave oscillation
+        double currentTime = ros::Time::now().toSec();
+        double elapsedTime = currentTime - startTime;
+        double sineValue = offset + amplitude * std::sin(2 * M_PI * frequency * elapsedTime);
+        double velocity = 2 * M_PI * frequency * amplitude * std::cos(2 * M_PI * frequency * elapsedTime);
+        SendStepperCommand(sineValue, velocity);
+    }
 }
 
+void RosStepperController::Update()
+{
+    if (sineTest) {
+        SineWaveTest();
+    } else {
+        PIDControl(targetLen_, maxVel_);
+    }
+}

@@ -106,10 +106,9 @@ void RosArduinoEncoderNode::Send2Serial(float len, float vel)
     // use string stream for stepperBuffer
     std::stringstream ss;
 
-    // round len and vel to 5 decimal places
-    len = roundf(len * 10000);
-    vel = roundf(vel * 10000);
-
+    // send a float with 5 digits by multiplying by 10000 and rounding
+    len = round(len * 10000);
+    vel = round(vel * 10000);
 
     // create stepperBuffer
     ss << len << " " << vel << "\n";

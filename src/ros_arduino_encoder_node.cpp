@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
         //arduinoEncoder.Update();
-        stepperController.PIDControl();
+        stepperController.Update();
         rate.sleep();
     }
     return 0;
