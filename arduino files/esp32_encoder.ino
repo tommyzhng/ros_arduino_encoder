@@ -31,29 +31,22 @@ void setup() {
 void loop() {
   int xVal = analogRead(Enc_x_pot);  
   int yVal = analogRead(Enc_y_pot);
-  float xAngle = map(xVal - xValInit, 0, 4095, -165, 165);
-  float yAngle = map(yVal - yValInit, 0, 4095, -165, 165);
+  int xAngle = map(xVal - xValInit, -2047, 2047, -1650, 1650);
+  int yAngle = map(yVal - yValInit, -2047, 2047, -1650, 1650);
 
   noInterrupts(); // read posZ
   int z = posZ;
   interrupts(); 
 
-  // Serial.write(0xEF);
-  // // Send pos_x data
-  // Serial.write((byte*)&xAngle, sizeof(xAngle));
-  // // Send pos_y data
-  // Serial.write((byte*)&yAngle, sizeof(yAngle));
-  // // Send posZ data
-  // Serial.write((byte*)&posZ, sizeof(posZ));
-  // print x y and z to serial
-  Serial.print("X: ");
-  Serial.print(xAngle);
-  Serial.print(" Y: ");
-  Serial.print(yAngle);
-  Serial.print(" Z: ");
-  Serial.println(z);
+  Serial.write(0xEF);
+  // Send pos_x data
+  Serial.write((byte*)&xAngle, sizeof(xAngle));
+  // Send pos_y data
+  Serial.write((byte*)&yAngle, sizeof(yAngle));
+  // Send posZ data
+  Serial.write((byte*)&posZ, sizeof(posZ));
 
-  delay(1);
+  delay(5);
 }
 // void readEncoderX() {
 //   static int lastX = digitalRead(Enc_xa);
