@@ -15,6 +15,7 @@ RosArduinoEncoderNode::RosArduinoEncoderNode(ros::NodeHandle& nh)
     // publish
     encoderPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/position_raw", 1);
     payloadPosPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/position_payload", 1);
+    payloadVelPub = nh.advertise<geometry_msgs::Vector3Stamped>("/encoder/velocity_payload", 1);
 }   
 
 void RosArduinoEncoderNode::StartEncoderSerial(serial::Serial& serial)
@@ -100,6 +101,21 @@ void RosArduinoEncoderNode::PubPayloadPos(void)
 {
     payloadPosPub.publish(payloadPosMsg);
 }
+void RosArduinoEncoderNode::PubPayloadVel(void)
+{
+    velX = (payloadPosMsg.vector.x - lastPayloadX) / 0.01666666666666666;
+    velY = (payloadPosMsg.vector.y - lastPayloadY) /  0.01666666666666666;
+    velZ = (payloadPosMsg.vector.z - lastPayloadZ) /  0.01666666666666666;
+    lastPayloadX = payloadPosMsg.vector.x;
+    lastPayloadY = payloadPosMsg.vector.y;
+    lastPayloadZ = payloadPosMsg.vector.z;
+    geometry_msgs::Vector3Stamped msg;
+    msg.vector.x = velX;
+    msg.vector.y = velY;
+    msg.vector.z = velZ;
+    payloadVelPub.publish(msg);
+
+}
 void RosArduinoEncoderNode::Send2Serial(float len, float vel)
 {
     stepperSerial->flush();
@@ -115,7 +131,7 @@ void RosArduinoEncoderNode::Send2Serial(float len, float vel)
     std::string stepperBuffer = ss.str();
     stepperSerial->write(stepperBuffer.c_str());
 
-    //std::cout << "Sent to stepper: " << stepperBuffer << std::endl;
+    std::cout << "Sent to stepper: " << stepperBuffer << std::endl;
 
 }
 void RosArduinoEncoderNode::Update(void)
@@ -124,5 +140,6 @@ void RosArduinoEncoderNode::Update(void)
     CalculatePosition();
     PubEncoderRaw();
     PubPayloadPos();
+    PubPayloadVel();
 }
 

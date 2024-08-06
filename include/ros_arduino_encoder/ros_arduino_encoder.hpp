@@ -41,6 +41,7 @@ private:
     void CalculatePosition();
     void PubEncoderRaw(void);
     void PubPayloadPos(void);
+    void PubPayloadVel(void);
     void Send2Serial(float len, float vel);
 
     // encoder serial
@@ -51,6 +52,12 @@ private:
     MsgUint32_t posX{0};
     MsgUint32_t posY{0};
     MsgUint32_t posZ{0};
+    float lastPayloadX{0};
+    float lastPayloadY{0};
+    float lastPayloadZ{0};
+    float velX{0};
+    float velY{0};
+    float velZ{0};
     float lengthPerTick = (M_PI * 0.05) / 30;
     // stepper serial
     std::unique_ptr<serial::Serial> stepperSerial;
@@ -59,8 +66,10 @@ private:
     // ros pubs
     ros::Publisher encoderPub;
     ros::Publisher payloadPosPub;
+    ros::Publisher payloadVelPub;
     geometry_msgs::Vector3Stamped encoderRawMsg;
     geometry_msgs::Vector3Stamped payloadPosMsg;
+    geometry_msgs::Vector3Stamped encoderRawSpdMsg;
     float temp = 0;
 };
 
