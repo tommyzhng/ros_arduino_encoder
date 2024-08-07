@@ -24,6 +24,10 @@ add_library(ros_arduino_encoder src/ros_arduino_encoder.cpp)
 target_include_directories(ros_arduino_encoder PUBLIC include)
 target_compile_features(ros_arduino_encoder PUBLIC cxx_std_17)
 
+find_package(Eigen3 REQUIRED)
+
+
+
 # add new ros_stepper_controller files
 add_library(ros_stepper_controller src/ros_stepper_controller.cpp)
 target_include_directories(ros_stepper_controller PUBLIC include)

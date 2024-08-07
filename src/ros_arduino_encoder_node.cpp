@@ -9,14 +9,14 @@ int main(int argc, char **argv)
     ros::Rate rate(60);
     RosArduinoEncoderNode arduinoEncoder(nh);
     ros::NodeHandle nh2("~");
-    RosStepperController stepperController(nh2);
+    //RosStepperController stepperController(nh2);
     
     std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Wait for Arduino to reset
     while (ros::ok())
     {
         ros::spinOnce();
         arduinoEncoder.Update();
-        stepperController.Update();
+        //stepperController.Update();
         rate.sleep();
     }
     return 0;

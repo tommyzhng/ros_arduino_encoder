@@ -14,6 +14,7 @@
 
 #include <thread>
 #include <chrono>
+#include <eigen3/Eigen/Dense>
 
 class RosArduinoEncoderNode
 {
@@ -33,13 +34,18 @@ public:
     RosArduinoEncoderNode(ros::NodeHandle& nh);
     ~RosArduinoEncoderNode() = default;
 
+
+
 private:
     void StartEncoderSerial(serial::Serial& serial);
     void ReadEncoder(serial::Serial &serial);
     void StartStepperSerial(serial::Serial& serial);
     void RecieveStepperCommandCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
-    void CalculatePosition();
+    void CalculatePosition(void);
+    void CalculateRawVel(void);
+    void CalculatePayloadVel(void);
     void PubEncoderRaw(void);
+    void PubEncoderRawVel(void);
     void PubPayloadPos(void);
     void PubPayloadVel(void);
     void Send2Serial(float len, float vel);
@@ -52,12 +58,7 @@ private:
     MsgUint32_t posX{0};
     MsgUint32_t posY{0};
     MsgUint32_t posZ{0};
-    float lastPayloadX{0};
-    float lastPayloadY{0};
-    float lastPayloadZ{0};
-    float velX{0};
-    float velY{0};
-    float velZ{0};
+
     float lengthPerTick = (M_PI * 0.05) / 30;
     // stepper serial
     std::unique_ptr<serial::Serial> stepperSerial;
@@ -65,12 +66,21 @@ private:
     ros::Subscriber stepperSub;
     // ros pubs
     ros::Publisher encoderPub;
+    ros::Publisher encoderVelPub;
     ros::Publisher payloadPosPub;
     ros::Publisher payloadVelPub;
-    geometry_msgs::Vector3Stamped encoderRawMsg;
-    geometry_msgs::Vector3Stamped payloadPosMsg;
-    geometry_msgs::Vector3Stamped encoderRawSpdMsg;
-    float temp = 0;
+
+
+    // speed testing
+    // variables to store subscriber data
+    Eigen::Vector3d encoderRaw{0,0,0};
+    Eigen::Vector3d lastEncoderRaw{0,0,0};
+    Eigen::Vector3d encoderRawVel{0,0,0};
+    Eigen::Vector3d payloadPos{0,0,0};
+    Eigen::Vector3d lastPayloadPos{0,0,0};
+    Eigen::Vector3d payloadVel{0,0,0};
+
+    
 };
 
 #endif
