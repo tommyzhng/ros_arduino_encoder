@@ -96,7 +96,7 @@ void RosArduinoEncoderNode::CalculatePosition(void)
 }
 void RosArduinoEncoderNode::CalculateRawVel(void)
 {
-    ros::Duration duration(0.16666667);
+    ros::Duration duration(0.016666667);
     encoderRawVel(0) = (encoderRaw(0) - lastEncoderRaw(0))/duration.toSec();
     encoderRawVel(1) = (encoderRaw(1) - lastEncoderRaw(1))/duration.toSec();
     encoderRawVel(2) = (encoderRaw(2) - lastEncoderRaw(2))/duration.toSec();
@@ -108,7 +108,7 @@ void RosArduinoEncoderNode::CalculateRawVel(void)
 }
 void RosArduinoEncoderNode::CalculatePayloadVel(void)
 {
-    ros::Duration duration(0.16666667);
+    ros::Duration duration(0.016666667);
     payloadVel(0) = (payloadPos(0) - lastPayloadPos(0)) /  duration.toSec();
     payloadVel(1) = (payloadPos(1) - lastPayloadPos(1)) /  duration.toSec();
     payloadVel(2) = (payloadPos(2) - lastPayloadPos(2)) /  duration.toSec();
@@ -149,6 +149,7 @@ void RosArduinoEncoderNode::PubPayloadPos(void)
 void RosArduinoEncoderNode::PubPayloadVel(void)
 {
     geometry_msgs::Vector3Stamped msg;
+    encoderRawVelMsg.header.stamp = ros::Time::now();
     msg.vector.x = payloadVel(0);
     msg.vector.y = payloadVel(1);
     msg.vector.z = payloadVel(2);
