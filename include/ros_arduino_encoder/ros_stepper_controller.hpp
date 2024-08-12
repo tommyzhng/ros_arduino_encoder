@@ -23,7 +23,7 @@ private:
     void RecieveStepperSetpointCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void RecieveCurrentLenCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
     void RecieveStepperTestCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
-    bool PIDControl(double targetLen, double maxVel); // this PD controller returns true if target is reached, prevents overshoot
+    bool PIDControl(double targetLen, double maxVel); // this PD controller returns if target is reached, prevents overshoot
     void SineWaveTest(void);
     // pubs
     void SendStepperCommand(double len, double vel);
@@ -38,8 +38,6 @@ private:
     std_msgs::Float32MultiArray stepperSerialMsg;
     std_msgs::Float32MultiArray sineMsg;
 
-
-    
     // PID params
     float ki{0.0f};
     float kp{0.0f};
@@ -58,6 +56,7 @@ private:
     float frequency{0};
     double startTime{0};
     bool reachedOffset{false};
+
 };
 
 #endif

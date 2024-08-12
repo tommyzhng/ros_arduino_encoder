@@ -16,6 +16,10 @@
 #include <chrono>
 #include <eigen3/Eigen/Dense>
 
+#ifndef window_size
+#define window_size 10
+#endif
+
 class RosArduinoEncoderNode
 {
 public:
@@ -43,7 +47,8 @@ private:
     void RecieveStepperCommandCb(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void CalculatePosition(void);
     void CalculateRawVel(void);
-    void CalculatePayloadVel(void);
+    void CalculateRawPayloadVel(void);
+    Eigen::Vector3d MovingAverage(Eigen::Vector3d newVel, Eigen::Vector3d velWindow[window_size]);
     void PubEncoderRaw(void);
     void PubEncoderRawVel(void);
     void PubPayloadPos(void);
@@ -78,8 +83,13 @@ private:
     Eigen::Vector3d encoderRawVel{0,0,0};
     Eigen::Vector3d payloadPos{0,0,0};
     Eigen::Vector3d lastPayloadPos{0,0,0};
-    Eigen::Vector3d payloadVel{0,0,0};
+    Eigen::Vector3d payloadRawVel{0,0,0};
 
+    // for velocity moving average
+    Eigen::Vector3d encoderVelWindow_[window_size];
+    Eigen::Vector3d encoderVelFiltered_{0,0,0};
+    Eigen::Vector3d payloadVelWindow_[window_size];
+    Eigen::Vector3d payloadVelFiltered_{0,0,0};
     
 };
 

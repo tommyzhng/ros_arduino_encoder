@@ -78,6 +78,25 @@ void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
     }
 }
 
+
+Eigen::Vector3d RosArduinoEncoderNode::MovingAverage(Eigen::Vector3d newVel, Eigen::Vector3d velWindow[window_size])
+{
+    for (int i = 1; i < window_size; i++)
+    {
+        velWindow[i-1] = velWindow[i];
+    }
+    velWindow[window_size-1] = newVel;
+
+    double weight = (double)1/window_size;
+    Eigen::Vector3d velTemp;
+    velTemp = weight*velWindow[0];
+    for (int i = 1; i< window_size; i++)
+    {
+        velTemp += weight*velWindow[i];
+    }
+    return velTemp;
+}
+
 void RosArduinoEncoderNode::RecieveStepperCommandCb(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
     //std::cout << "Recieved stepper cmd:"  << msg->data<< std::endl;
@@ -103,18 +122,19 @@ void RosArduinoEncoderNode::CalculateRawVel(void)
     lastEncoderRaw(0) = encoderRaw(0);
     lastEncoderRaw(1) = encoderRaw(1);
     lastEncoderRaw(2) = encoderRaw(2);
-    
+    encoderVelFiltered_ = MovingAverage(encoderRawVel, encoderVelWindow_);
     PubEncoderRawVel();
 }
-void RosArduinoEncoderNode::CalculatePayloadVel(void)
+void RosArduinoEncoderNode::CalculateRawPayloadVel(void)
 {
     ros::Duration duration(0.016666667);
-    payloadVel(0) = (payloadPos(0) - lastPayloadPos(0)) /  duration.toSec();
-    payloadVel(1) = (payloadPos(1) - lastPayloadPos(1)) /  duration.toSec();
-    payloadVel(2) = (payloadPos(2) - lastPayloadPos(2)) /  duration.toSec();
+    payloadRawVel(0) = (payloadPos(0) - lastPayloadPos(0)) /  duration.toSec();
+    payloadRawVel(1) = (payloadPos(1) - lastPayloadPos(1)) /  duration.toSec();
+    payloadRawVel(2) = (payloadPos(2) - lastPayloadPos(2)) /  duration.toSec();
     lastPayloadPos(0) = payloadPos(0);
     lastPayloadPos(1)= payloadPos(1);
     lastPayloadPos(2) = payloadPos(2);
+    payloadVelFiltered_ = MovingAverage(payloadRawVel, payloadVelWindow_);
     PubPayloadVel();
 }
 
@@ -131,9 +151,9 @@ void RosArduinoEncoderNode::PubEncoderRawVel(void)
 {
     geometry_msgs::Vector3Stamped encoderRawVelMsg;
     encoderRawVelMsg.header.stamp = ros::Time::now();
-    encoderRawVelMsg.vector.x = encoderRawVel(0);
-    encoderRawVelMsg.vector.y = encoderRawVel(1);
-    encoderRawVelMsg.vector.z = encoderRawVel(2);
+    encoderRawVelMsg.vector.x = encoderVelFiltered_(0);
+    encoderRawVelMsg.vector.y = encoderVelFiltered_(1);
+    encoderRawVelMsg.vector.z = encoderVelFiltered_(2);
 
     encoderVelPub.publish(encoderRawVelMsg);
 }
@@ -148,12 +168,12 @@ void RosArduinoEncoderNode::PubPayloadPos(void)
 }
 void RosArduinoEncoderNode::PubPayloadVel(void)
 {
-    geometry_msgs::Vector3Stamped msg;
-    encoderRawVelMsg.header.stamp = ros::Time::now();
-    msg.vector.x = payloadVel(0);
-    msg.vector.y = payloadVel(1);
-    msg.vector.z = payloadVel(2);
-    payloadVelPub.publish(msg);
+    geometry_msgs::Vector3Stamped payloadVelMsg;
+    payloadVelMsg.header.stamp = ros::Time::now();
+    payloadVelMsg.vector.x = payloadVelFiltered_(0);
+    payloadVelMsg.vector.y = payloadVelFiltered_(1);
+    payloadVelMsg.vector.z = payloadVelFiltered_(2);
+    payloadVelPub.publish(payloadVelMsg);
 
 }
 void RosArduinoEncoderNode::Send2Serial(float len, float vel)
@@ -179,6 +199,6 @@ void RosArduinoEncoderNode::Update(void)
     ReadEncoder(*encoderSerial);
     CalculatePosition();
     CalculateRawVel();
-    CalculatePayloadVel();
+    CalculateRawPayloadVel();
 }
 
