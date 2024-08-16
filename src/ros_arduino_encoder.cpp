@@ -69,8 +69,8 @@ void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
         posZ.bits[2] = buffer[11];
         posZ.bits[3] = buffer[12];
 
-        encoderRaw(0) = posX.value / 10.0;
-        encoderRaw(1)= posY.value / 10.0;
+        encoderRaw(0) = posX.value;
+        encoderRaw(1)= posY.value;
         encoderRaw(2) = posZ.value;
         PubEncoderRaw();
 

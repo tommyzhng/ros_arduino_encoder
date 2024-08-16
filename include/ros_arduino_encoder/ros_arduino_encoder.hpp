@@ -17,7 +17,7 @@
 #include <eigen3/Eigen/Dense>
 
 #ifndef window_size
-#define window_size 10
+#define window_size 5
 #endif
 
 class RosArduinoEncoderNode
@@ -64,7 +64,7 @@ private:
     MsgUint32_t posY{0};
     MsgUint32_t posZ{0};
 
-    float lengthPerTick = (M_PI * 0.05) / 30;
+    float lengthPerTick = (M_PI * 0.052) / 1200;
     // stepper serial
     std::unique_ptr<serial::Serial> stepperSerial;
     // ros subs
