@@ -69,8 +69,8 @@ void RosArduinoEncoderNode::ReadEncoder(serial::Serial &serial)
         posZ.bits[2] = buffer[11];
         posZ.bits[3] = buffer[12];
 
-        encoderRaw(0) = posX.value;
-        encoderRaw(1)= posY.value;
+        encoderRaw(0) = posX.value/10000.0f;
+        encoderRaw(1)= posY.value/10000.0f;
         encoderRaw(2) = posZ.value;
         PubEncoderRaw();
 
@@ -108,9 +108,10 @@ void RosArduinoEncoderNode::CalculatePosition(void)
 {
     float angleX = (encoderRaw(0)) * M_PI / 180;
     float angleY = (encoderRaw(1)) * M_PI / 180;
+    ROS_INFO("Angle X: %f, Angle Y: %f", angleX, angleY);
     payloadPos(2) = encoderRaw(2) * lengthPerTick;
-    payloadPos(0) = payloadPos(2) * sin(angleX);
-    payloadPos(1) = payloadPos(2)* sin(angleY);
+    payloadPos(0) = -payloadPos(2) * sin(angleY); // rotation around y -> x position
+    payloadPos(1) = payloadPos(2)* sin(angleX); // rotation around x -> y position
     PubPayloadPos();
 }
 void RosArduinoEncoderNode::CalculateRawVel(void)
