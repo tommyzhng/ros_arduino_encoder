@@ -17,8 +17,8 @@ RosStepperController::RosStepperController(ros::NodeHandle& nh) : sineTest(false
 
 void RosStepperController::RecieveStepperSetpointCb(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-    targetLen_ = msg->data[0];
-    maxVel_ = msg->data[1];
+    targetLen_ = -abs(msg->data[0]);
+    maxVel_ = abs(msg->data[1]);
 }
 
 void RosStepperController::RecieveCurrentLenCb(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
@@ -68,7 +68,7 @@ bool RosStepperController::PIDControl(double targetLen, double maxVel)
     }
 
     lastError = error;
-    SendStepperCommand(targetLen, -output);
+    SendStepperCommand(targetLen, output);
     return false;
 }
 
@@ -76,7 +76,7 @@ void RosStepperController::SineWaveTest(void)
 {
     if (!sineTest) return;
 
-    double offset = amplitude * 1.1; // a bit more than amplitude to avoid hitting the frame
+    double offset = -abs(amplitude) * 1.5; // a bit more than amplitude to avoid hitting the frame
 
     if (!reachedOffset) {               // move to the starting offset position
         reachedOffset = PIDControl(offset, 0.1);

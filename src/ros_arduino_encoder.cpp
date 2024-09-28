@@ -108,7 +108,6 @@ void RosArduinoEncoderNode::CalculatePosition(void)
 {
     float angleX = (encoderRaw(0)) * M_PI / 180;
     float angleY = (encoderRaw(1)) * M_PI / 180;
-    ROS_INFO("Angle X: %f, Angle Y: %f", angleX, angleY);
     payloadPos(2) = encoderRaw(2) * lengthPerTick;
     payloadPos(0) = -payloadPos(2) * sin(angleY); // rotation around y -> x position
     payloadPos(1) = payloadPos(2)* sin(angleX); // rotation around x -> y position
